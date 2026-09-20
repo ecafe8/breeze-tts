@@ -17,6 +17,11 @@ build for another GPU, override it explicitly, for example:
 FLASH_ATTN_CUDA_ARCHS=80 bash docker/build.sh
 ```
 
+The build converts two-digit targets such as `89` to the format expected by
+PyTorch's CUDA extension builder, so it does not require a GPU to be visible
+during `docker build`. Local checkpoints are excluded from the build context
+and mounted only when the container runs.
+
 Run with a local model directory:
 
 ```bash

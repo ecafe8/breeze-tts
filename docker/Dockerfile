@@ -30,7 +30,8 @@ RUN uv pip install --system setuptools wheel packaging ninja \
     && uv export --locked --format requirements.txt --no-emit-project > /tmp/requirements.txt \
     && uv pip install --system -r /tmp/requirements.txt \
     && rm /tmp/requirements.txt \
-    && MAX_JOBS=8 FLASH_ATTN_CUDA_ARCHS=${FLASH_ATTN_CUDA_ARCHS} uv pip install --system \
+    && torch_cuda_archs="$(printf '%s' "${FLASH_ATTN_CUDA_ARCHS}" | sed -E 's/([0-9])([0-9])/\1.\2/g; s/,/;/g')" \
+    && MAX_JOBS=8 FLASH_ATTN_CUDA_ARCHS=${FLASH_ATTN_CUDA_ARCHS} TORCH_CUDA_ARCH_LIST=${torch_cuda_archs} uv pip install --system \
         --no-build-isolation \
         --no-deps \
         "flash-attn==2.8.3"

@@ -18,3 +18,4 @@ outputs
 *.pth
 *.ckpt
 *.safetensors
+ckpts
