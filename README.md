@@ -66,6 +66,70 @@ uv run python infer.py --help
 uv run pytest
 ```
 
+Download the Breeze TTS 2 checkpoint from ModelScope into the project `ckpts`
+directory:
+
+```bash
+uv run modelscope download \
+  BreezeBlue/Breeze-TTS-2 \
+  --local_dir ckpts/breeze-tts-2
+```
+
+The downloaded checkpoint can then be passed to the inference commands as
+`ckpts/breeze-tts-2`:
+
+```bash
+uv run python infer.py ckpts/breeze-tts-2 \
+  --text "Welcome aboard. Your journey begins now." \
+  --output outputs/example.wav
+```
+
+Start the FastAPI service with the downloaded checkpoint:
+
+```bash
+./start-api.sh
+```
+
+The script listens on `127.0.0.1:7860` by default. Set `HOST`, `PORT`, or
+`MODEL_PATH` to override the defaults; set `FAST_ALL=1` to enable the fast path:
+
+```bash
+HOST=0.0.0.0 PORT=7860 FAST_ALL=1 ./start-api.sh
+```
+
+For faster attention on an RTX 4090, FlashAttention must be built with the same
+CUDA version as PyTorch (`12.8`). The recommended route is the included Docker
+image, which already provides the matching CUDA toolkit:
+
+```bash
+FLASH_ATTN_CUDA_ARCHS=89 bash docker/build.sh
+bash docker/run.sh "$PWD/ckpts/breeze-tts-2" --fast-all
+```
+
+For a quick LAN-accessible Docker launch after the image is built:
+
+```bash
+FAST_ALL=1 ./start-api-docker.sh
+```
+
+The container API listens on `0.0.0.0`; access it from another device with
+`http://<host-ip>:7860`. Set `PORT` or `MODEL_PATH` to override the defaults.
+The script stays attached to the container so API logs remain visible.
+
+For a local install, first install the CUDA 12.8 toolkit and `ninja`, then set
+`CUDA_HOME` to the CUDA 12.8 directory before building FlashAttention:
+
+```bash
+uv pip install ninja
+CUDA_HOME=/usr/local/cuda-12.8 \
+  PATH=/usr/local/cuda-12.8/bin:$PATH \
+  MAX_JOBS=8 FLASH_ATTN_CUDA_ARCHS=89 \
+  uv pip install --no-build-isolation --no-deps "flash-attn==2.8.3"
+```
+
+If the host only has CUDA 11.8, keep using `./start-api.sh` without
+`FAST_ALL=1`; the PyTorch attention fallback is functional, just slower.
+
 All required model components are included in the Breeze TTS 2 checkpoint.
 
 For the tested CUDA environment, build the included Docker image:

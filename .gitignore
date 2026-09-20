@@ -1,5 +1,6 @@
 runs/
 outputs/
+ckpts/
 warmup_manifest.json
 *.wav
 

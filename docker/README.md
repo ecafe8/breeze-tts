@@ -24,6 +24,16 @@ bash docker/run.sh /path/to/breeze-model \
   --fast-all
 ```
 
+From the repository root, the default checkpoint can be started for LAN access
+with:
+
+```bash
+FAST_ALL=1 ./start-api-docker.sh
+```
+
+The service is published on port `7860` and listens on `0.0.0.0`. Set `PORT` or
+`MODEL_PATH` to override the defaults.
+
 The model is mounted read-only and is never copied into the image. The build
 runs an import/version smoke check and the CPU-safe core unit tests. GPU graph
 capture happens only when fast stages are explicitly enabled on an NVIDIA GPU.
