@@ -56,7 +56,14 @@ cd breeze-tts
 Install the dependencies:
 
 ```bash
-python -m pip install -r requirements.txt
+uv sync
+```
+
+Run project commands inside the managed environment with `uv run`, for example:
+
+```bash
+uv run python infer.py --help
+uv run pytest
 ```
 
 All required model components are included in the Breeze TTS 2 checkpoint.

@@ -1,5 +1,7 @@
 FROM pytorch/pytorch:2.9.1-cuda12.8-cudnn9-devel
 
+COPY --from=ghcr.io/astral-sh/uv:0.10.11 /uv /uvx /bin/
+
 ARG FLASH_ATTN_CUDA_ARCHS=90
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -22,11 +24,13 @@ RUN apt-get update \
 
 WORKDIR /opt/breeze-infer
 
-COPY requirements.txt ./
+COPY pyproject.toml uv.lock ./
 
-RUN python -m pip install --upgrade pip setuptools wheel packaging ninja \
-    && python -m pip install -r requirements.txt \
-    && MAX_JOBS=8 FLASH_ATTN_CUDA_ARCHS=${FLASH_ATTN_CUDA_ARCHS} python -m pip install \
+RUN uv pip install --system setuptools wheel packaging ninja \
+    && uv export --locked --format requirements.txt --no-emit-project > /tmp/requirements.txt \
+    && uv pip install --system -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt \
+    && MAX_JOBS=8 FLASH_ATTN_CUDA_ARCHS=${FLASH_ATTN_CUDA_ARCHS} uv pip install --system \
         --no-build-isolation \
         --no-deps \
         "flash-attn==2.8.3"
