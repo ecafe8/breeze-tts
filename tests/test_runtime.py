@@ -33,4 +33,5 @@ def test_load_runtime_disables_inapplicable_mistral_regex_fix(tmp_path) -> None:
     load_tokenizer.assert_called_once_with(
         tmp_path,
         fix_mistral_regex=False,
+        local_files_only=True,
     )

@@ -120,18 +120,21 @@ def build_request_state_slot(
 
     def add_conv(name: str, channels: int, left: int):
         conv1d[name] = ConvStateBlock(
-            cache_buf=torch.zeros((1, channels, left), device=device, dtype=dtype),
+            cache_buf=torch.zeros((1, channels, left),
+                                  device=device, dtype=dtype),
             left_cache_len=left,
         )
 
     def add_tconv(name: str, channels: int, left: int):
         tconv1d[name] = TransConvStateBlock(
-            cache_buf=torch.zeros((1, channels, left), device=device, dtype=dtype),
+            cache_buf=torch.zeros((1, channels, left),
+                                  device=device, dtype=dtype),
             left_cache_len=left,
         )
 
     add_conv(
-        "pre_conv", config.codebook_dim, _causal_conv_left_cache_len(decoder.pre_conv)
+        "pre_conv", config.codebook_dim, _causal_conv_left_cache_len(
+            decoder.pre_conv)
     )
     for idx, blocks in enumerate(decoder.upsample):
         add_tconv(
@@ -278,9 +281,11 @@ class MultiRequestStreamRuntime:
                 f"got {self.config.non_integer_chunk_strategy!r}"
             )
         if self.config.fast and (
-            self.config.num_lanes != 1 or self.config.max_active_reqs not in {None, 1}
+            self.config.num_lanes != 1 or self.config.max_active_reqs not in {
+                None, 1}
         ):
-            raise ValueError("fast codec requires num_lanes=1 and max_active_reqs<=1")
+            raise ValueError(
+                "fast codec requires num_lanes=1 and max_active_reqs<=1")
         if (
             self.config.fast
             and self.config.device is not None
@@ -380,14 +385,17 @@ class MultiRequestStreamRuntime:
                 self.config.chunk_frames,
             )
         theoretical_spc = theoretical_chunk_out // self.config.chunk_frames
-        num_quantizers = int(self.tokenizer.model.decoder.config.num_quantizers)  # type: ignore[union-attr]
+        # type: ignore[union-attr]
+        num_quantizers = int(
+            self.tokenizer.model.decoder.config.num_quantizers)
         dummy_codes = torch.zeros(
             (1, num_quantizers, self.config.chunk_frames),
             device=self.config.device,
             dtype=torch.long,
         )
         with torch.inference_mode():
-            observed = self.tokenizer.model.decoder(dummy_codes)  # type: ignore[union-attr]
+            observed = self.tokenizer.model.decoder(
+                dummy_codes)  # type: ignore[union-attr]
         observed_chunk_out = int(observed.shape[-1])
         if observed_chunk_out % self.config.chunk_frames != 0:
             logger.error(
@@ -440,7 +448,8 @@ class MultiRequestStreamRuntime:
         pre_transformer = getattr(decoder, "pre_transformer", None)
         if pre_transformer is None or not hasattr(pre_transformer, "config"):
             return
-        current_impl = getattr(pre_transformer.config, "_attn_implementation", None)
+        current_impl = getattr(pre_transformer.config,
+                               "_attn_implementation", None)
         if current_impl != "eager":
             logger.warning(
                 "breeze_codec forcing pre_transformer attention backend to eager for fast codec. previous=%s",
@@ -491,7 +500,8 @@ class MultiRequestStreamRuntime:
                 _request_state_bytes(sample_request_state)
                 * (self.config.max_active_reqs or 1)
             ),
-            _format_bytes(_workspace_bytes(sample_workspace) * self.config.num_lanes),
+            _format_bytes(_workspace_bytes(sample_workspace)
+                          * self.config.num_lanes),
             self.samples_per_code,
         )
 
@@ -646,9 +656,10 @@ class MultiRequestStreamRuntime:
                 ) * self.config.chunk_frames
                 for offset in range(0, full_len, self.config.chunk_frames):
                     step_codes = codes_chunk[
-                        ..., offset : offset + self.config.chunk_frames
+                        ..., offset: offset + self.config.chunk_frames
                     ]
-                    outs.append(lane.run_step(step_codes, state.next_step).clone())
+                    outs.append(lane.run_step(
+                        step_codes, state.next_step).clone())
                     state.next_step += int(step_codes.shape[-1])
                     lane.binding.request_slot.next_step = state.next_step
                 tail = codes_chunk.shape[-1] - full_len
@@ -663,9 +674,10 @@ class MultiRequestStreamRuntime:
                         tail_lane = self._select_tail_eager_lane(req_id)
                         tail_lane.load_request_state(state)
                         for offset in range(tail):
-                            step_codes = tail_codes[..., offset : offset + 1]
+                            step_codes = tail_codes[..., offset: offset + 1]
                             outs.append(
-                                tail_lane.run_step(step_codes, state.next_step).clone()
+                                tail_lane.run_step(
+                                    step_codes, state.next_step).clone()
                             )
                             state.next_step += 1
                             tail_lane.binding.request_slot.next_step = state.next_step
@@ -683,7 +695,8 @@ class MultiRequestStreamRuntime:
                             dtype=tail_codes.dtype,
                         )
                         padded = torch.cat([tail_codes, pad], dim=-1)
-                        padded_wav = lane.run_step(padded, state.next_step).clone()
+                        padded_wav = lane.run_step(
+                            padded, state.next_step).clone()
                         trim_len = int(tail * self.samples_per_code)
                         outs.append(padded_wav[..., :trim_len])
                         state.next_step += tail
@@ -739,6 +752,7 @@ def load_tokenizer(model_path: str | Path) -> Qwen3TTSTokenizer:
         str(model_path),
         torch_dtype=torch.float32,
         load_feature_extractor=False,
+        local_files_only=True,
     )
     if tok.model is None:
         raise RuntimeError("Tokenizer model failed to load.")

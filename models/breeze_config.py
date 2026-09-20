@@ -39,9 +39,12 @@ class BreezeConfig(BreezeConfig_transformers):
             assert os.path.isdir(text_encoder_config), (
                 f"text_encoder_config as str must be a valid directory path: '{text_encoder_config}'"
             )
-            self.text_encoder_config = AutoConfig.from_pretrained(text_encoder_config)
+            self.text_encoder_config = AutoConfig.from_pretrained(
+                text_encoder_config, local_files_only=True
+            )
         elif isinstance(text_encoder_config, dict):
-            self.text_encoder_config = AutoConfig.for_model(**text_encoder_config)
+            self.text_encoder_config = AutoConfig.for_model(
+                **text_encoder_config)
         else:
             raise ValueError(
                 f"text_encoder_config must be a str (path), dict, or AutoConfig instance. but got {type(text_encoder_config)}"

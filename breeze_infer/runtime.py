@@ -55,7 +55,7 @@ def update_generation_config_for_breeze(
 
     prefix = "depth_decoder_"
     depth_decoder_attrs = {
-        attr[len(prefix) :]: value
+        attr[len(prefix):]: value
         for attr, value in generation_config.items()
         if attr.startswith(prefix)
     }
@@ -86,11 +86,13 @@ def load_runtime(
     tokenizer = AutoTokenizer.from_pretrained(
         ckpt_dir,
         fix_mistral_regex=False,
+        local_files_only=True,
     )
     model = BreezeForConditionalGeneration.from_pretrained(
         ckpt_dir,
         dtype=torch.bfloat16,
         attn_implementation=attn_implementation,
+        local_files_only=True,
     )
     model.to(device).eval()
 
@@ -104,6 +106,6 @@ def load_runtime(
             "the audio_tokenizer directory."
         )
     audio_tokenizer = Qwen3TTSTokenizer.from_pretrained(
-        str(bundled_audio_tokenizer), device_map=device
+        str(bundled_audio_tokenizer), device_map=device, local_files_only=True
     )
     return tokenizer, model, audio_tokenizer

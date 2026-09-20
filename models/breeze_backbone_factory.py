@@ -131,7 +131,9 @@ class BreezeBackboneAdapter(nn.Module):
             logger.info(
                 f"Creating backbone adapter for {backbone_type} from {backbone_path}"
             )
-            llm_config = AutoConfig.from_pretrained(backbone_path)
+            llm_config = AutoConfig.from_pretrained(
+                backbone_path, local_files_only=True
+            )
 
         # Transfer attention implementation setting from BreezeConfig to LLM config
         if (
@@ -145,7 +147,8 @@ class BreezeBackboneAdapter(nn.Module):
         else:
             # Default to eager if not specified
             llm_config._attn_implementation = "eager"
-            logger.info("Attention implementation not specified, defaulting to: eager")
+            logger.info(
+                "Attention implementation not specified, defaulting to: eager")
 
         # Create layers based on backbone type
         if backbone_type == "qwen3":
@@ -175,7 +178,8 @@ class BreezeBackboneAdapter(nn.Module):
                 for layer_idx in range(llm_config.num_hidden_layers)
             ]
         )
-        norm = Qwen3RMSNorm(llm_config.hidden_size, eps=llm_config.rms_norm_eps)
+        norm = Qwen3RMSNorm(llm_config.hidden_size,
+                            eps=llm_config.rms_norm_eps)
         rotary_emb = Qwen3RotaryEmbedding(config=llm_config)
 
         return layers, norm, rotary_emb
@@ -195,7 +199,8 @@ class BreezeBackboneAdapter(nn.Module):
                 for layer_idx in range(llm_config.num_hidden_layers)
             ]
         )
-        norm = LlamaRMSNorm(llm_config.hidden_size, eps=llm_config.rms_norm_eps)
+        norm = LlamaRMSNorm(llm_config.hidden_size,
+                            eps=llm_config.rms_norm_eps)
         rotary_emb = LlamaRotaryEmbedding(config=llm_config)
 
         return layers, norm, rotary_emb

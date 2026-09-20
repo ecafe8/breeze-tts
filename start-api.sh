@@ -3,8 +3,8 @@ set -euo pipefail
 
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 model_path="${MODEL_PATH:-$repo_dir/ckpts/breeze-tts-2}"
-host="${HOST:-127.0.0.1}"
-port="${PORT:-7860}"
+host="${HOST:-0.0.0.0}"
+port="${PORT:-7888}"
 
 if [[ -n "${TRANSFORMERS_CACHE:-}" && -z "${HF_HOME:-}" ]]; then
   export HF_HOME="$TRANSFORMERS_CACHE"
